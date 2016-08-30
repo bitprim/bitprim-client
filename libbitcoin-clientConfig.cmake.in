@@ -1,0 +1,13 @@
+# - Config file for the LIBBITCOIN_CLIENT package
+#
+#  LIBBITCOIN_CLIENT_INCLUDE_DIRS - include directories for LIBBITCOIN_CLIENT
+#  LIBBITCOIN_CLIENT_LIBRARIES    - libraries to link against
+
+get_filename_component(LIBBITCOIN_CLIENT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(LIBBITCOIN_CLIENT_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+include("${LIBBITCOIN_CLIENT_CMAKE_DIR}/libbitcoin-clientTargets.cmake")
+set(LIBBITCOIN_CLIENT_LIBRARIES libbitcoin-client)
+
+find_package(libbitcoin 3.0.0 REQUIRED)
+find_package(libbitcoin-protocol 3.0.0 REQUIRED)

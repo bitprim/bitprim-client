@@ -28,3 +28,5 @@ obj
 
 examples/get_height/get_height
 examples/console/libbitcoin_client
+
+/build
