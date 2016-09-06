@@ -1,8 +1,8 @@
 cmake_policy(VERSION 3.4)
 
-# libbitcoin-client
+# bitprim-client
 #==============================================================================
-project(libbitcoin-client
+project(bitprim-client
   VERSION 3.0.0
   LANGUAGES CXX C)
 cmake_minimum_required(VERSION 3.4)
@@ -37,16 +37,16 @@ find_package(
   Boost 1.56.0 REQUIRED
   COMPONENTS unit_test_framework)
 
-# Require bitcoin of at least version 3.0.0 and output ${bitcoin_CPPFLAGS/LIBS/PKG}.
+# Require bitprim-core of at least version 3.0.0 and output ${bitprim_core_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET libbitcoin)
-  find_package(libbitcoin 3.0.0 REQUIRED)
+if (NOT TARGET bitprim)
+  find_package(bitprim 3.0.0 REQUIRED)
 endif()
 
-# Require bitcoin-protocol of at least version 3.0.0 and output ${bitcoin_protocol_CPPFLAGS/LIBS/PKG}.
+# Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET libbitcoin-protocol)
-  find_package(libbitcoin-protocol 3.0.0 REQUIRED)
+if (NOT TARGET bitprim-protocol)
+  find_package(bitprim-protocol 3.0.0 REQUIRED)
 endif()
 
 # Set flags.
@@ -128,33 +128,33 @@ _add_cxx_compile_flag(-fvisibility-inlines-hidden _has_visibility_inlines_hidden
 
 # Build
 #==============================================================================
-# src/libbitcoin-client.la => ${libdir}
+# src/bitprim-client.la => ${libdir}
 #------------------------------------------------------------------------------
 set(MODE STATIC)
 if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
-add_library(libbitcoin-client ${MODE}
+add_library(bitprim-client ${MODE}
   src/dealer.cpp
   src/obelisk_client.cpp
   src/proxy.cpp
   src/socket_stream.cpp)
-target_include_directories(libbitcoin-client PUBLIC
+target_include_directories(bitprim-client PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(libbitcoin-client PUBLIC -DBCC_STATIC)
+target_compile_definitions(bitprim-client PUBLIC -DBCC_STATIC)
 
-target_link_libraries(libbitcoin-client libbitcoin libbitcoin-protocol)
+target_link_libraries(bitprim-client bitprim bitprim-protocol)
 
 # Group sources
 file(GLOB_RECURSE headers
   RELATIVE ${CMAKE_CURRENT_LIST_DIR}
   include/*.h include/*.hpp)
-target_sources(libbitcoin-client PRIVATE "${headers}")
+target_sources(bitprim-client PRIVATE "${headers}")
 
-get_target_property(sources libbitcoin-client SOURCES)
+get_target_property(sources bitprim-client SOURCES)
 foreach (source ${sources})
   get_filename_component(group ${source} DIRECTORY)
   if (MSVC)
@@ -163,27 +163,27 @@ foreach (source ${sources})
   source_group("${group}" FILES ${source})
 endforeach()
 
-# local: test/libbitcoin_client_test
+# local: test/bitprim_client_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
-  add_executable(libbitcoin_client_test
+  add_executable(bitprim_client_test
     test/main.cpp
     test/proxy.cpp)
   if (ENABLE_SHARED)
-    target_compile_definitions(libbitcoin_client_test PRIVATE -DBOOST_TEST_DYN_LINK)
+    target_compile_definitions(bitprim_client_test PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
-  target_link_libraries(libbitcoin_client_test libbitcoin-client)
+  target_link_libraries(bitprim_client_test bitprim-client)
 
-  target_include_directories(libbitcoin_client_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(libbitcoin_client_test
+  target_include_directories(bitprim_client_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(bitprim_client_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
   enable_testing()
-  set(_libbitcoin_tests proxy_tests)
-  foreach (_test_name ${_libbitcoin_tests})
+  set(_bitprim_tests proxy_tests)
+  foreach (_test_name ${_bitprim_tests})
     add_test(
       NAME test.${_test_name}
-      COMMAND libbitcoin_client_test
+      COMMAND bitprim_client_test
         --run_test=${_test_name}
         --show_progress=no
         --detect_memory_leak=0
@@ -203,7 +203,7 @@ if (WITH_EXAMPLES)
     examples/console/main.cpp
     examples/console/read_line.cpp
     examples/console/read_line.hpp)
-  target_link_libraries(console PUBLIC libbitcoin-client)
+  target_link_libraries(console PUBLIC bitprim-client)
 endif()
 
 # local: examples/get_height/get_height
@@ -211,16 +211,16 @@ endif()
 if (WITH_EXAMPLES)
   add_executable(get_height
     examples/get_height/main.cpp)
-  target_link_libraries(get_height PUBLIC libbitcoin-client)
+  target_link_libraries(get_height PUBLIC bitprim-client)
 endif()
 
 # Install
 #==============================================================================
-install(TARGETS libbitcoin-client
-  EXPORT libbitcoin-client
+install(TARGETS bitprim-client
+  EXPORT bitprim-client
   ARCHIVE DESTINATION lib)
 
-set(_libbitcoin_headers
+set(_bitprim_headers
   # include_bitcoin_HEADERS =
   bitcoin/client.hpp
   # include_bitcoin_client_HEADERS =
@@ -231,7 +231,7 @@ set(_libbitcoin_headers
   bitcoin/client/socket_stream.hpp
   bitcoin/client/stream.hpp
   bitcoin/client/version.hpp)
-foreach (_header ${_libbitcoin_headers})
+foreach (_header ${_bitprim_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")
 endforeach()
@@ -240,9 +240,9 @@ endforeach()
 #==============================================================================
 include(CMakePackageConfigHelpers)
 
-export(EXPORT libbitcoin-client
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-clientTargets.cmake")
-export(PACKAGE libbitcoin-client)
+export(EXPORT bitprim-client
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/bitprim-clientTargets.cmake")
+export(PACKAGE bitprim-client)
 
 if (UNIX)
   set(_config_package_location "lib/cmake")
@@ -250,21 +250,21 @@ elseif (WIN32)
   set(_config_package_location "cmake")
 endif()
 
-install(EXPORT libbitcoin-client
-  FILE libbitcoin-clientTargets.cmake
+install(EXPORT bitprim-client
+  FILE bitprim-clientTargets.cmake
   DESTINATION ${_config_package_location})
 
-configure_file(libbitcoin-clientConfig.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-clientConfig.cmake"
+configure_file(bitprim-clientConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-clientConfig.cmake"
   @ONLY)
 
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-clientConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-clientConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion)
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-clientConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-clientConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-clientConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-clientConfigVersion.cmake"
   DESTINATION ${_config_package_location})

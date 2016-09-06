@@ -1,0 +1,13 @@
+# - Config file for the BITPRIM_CLIENT package
+#
+#  BITPRIM_CLIENT_INCLUDE_DIRS - include directories for BITPRIM_CLIENT
+#  BITPRIM_CLIENT_LIBRARIES    - libraries to link against
+
+get_filename_component(BITPRIM_CLIENT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(BITPRIM_CLIENT_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+include("${BITPRIM_CLIENT_CMAKE_DIR}/bitprim-clientTargets.cmake")
+set(BITPRIM_CLIENT_LIBRARIES bitprim-client)
+
+find_package(bitprim 3.0.0 REQUIRED)
+find_package(bitprim-protocol 3.0.0 REQUIRED)
