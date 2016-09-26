@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.4)
 project(bitprim-client
   VERSION 3.0.0
   LANGUAGES CXX C)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++11 standard.
 #------------------------------------------------------------------------------
@@ -147,6 +148,8 @@ target_compile_definitions(bitprim-client PUBLIC -DBCC_STATIC)
 
 target_link_libraries(bitprim-client bitprim-core bitprim-protocol)
 
+set_target_properties(bitprim-client PROPERTIES FOLDER "client")
+
 # Group sources
 file(GLOB_RECURSE headers
   RELATIVE ${CMAKE_CURRENT_LIST_DIR}
@@ -162,6 +165,8 @@ foreach (source ${sources})
   source_group("${group}" FILES ${source})
 endforeach()
 
+# Tests
+#==============================================================================
 # local: test/bitprim_client_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
@@ -177,6 +182,8 @@ if (WITH_TESTS)
   target_link_libraries(bitprim_client_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
+  set_target_properties(bitprim_client_test PROPERTIES FOLDER "client")
+
   enable_testing()
   set(_bitprim_tests proxy_tests)
   foreach (_test_name ${_bitprim_tests})
@@ -191,6 +198,8 @@ if (WITH_TESTS)
   endforeach()
 endif()
 
+# Examples
+#==============================================================================
 # local: examples/console/console
 #------------------------------------------------------------------------------
 if (WITH_EXAMPLES)
@@ -203,6 +212,7 @@ if (WITH_EXAMPLES)
     examples/console/read_line.cpp
     examples/console/read_line.hpp)
   target_link_libraries(console PUBLIC bitprim-client)
+  set_target_properties(console PROPERTIES FOLDER "client")
 endif()
 
 # local: examples/get_height/get_height
@@ -211,6 +221,7 @@ if (WITH_EXAMPLES)
   add_executable(get_height
     examples/get_height/main.cpp)
   target_link_libraries(get_height PUBLIC bitprim-client)
+  set_target_properties(get_height PROPERTIES FOLDER "client")
 endif()
 
 # Install
