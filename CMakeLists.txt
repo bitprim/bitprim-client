@@ -173,35 +173,40 @@ _group_sources(bitprim-client "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
 #==============================================================================
-# local: test/bitprim_client_test
-#------------------------------------------------------------------------------
-if (WITH_TESTS)
-  add_executable(bitprim_client_test
-    test/main.cpp
-    test/proxy.cpp)
+function(_add_tests target)
   if (ENABLE_SHARED)
-    target_compile_definitions(bitprim_client_test PRIVATE -DBOOST_TEST_DYN_LINK)
+    target_compile_definitions(${target} PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
-  target_link_libraries(bitprim_client_test bitprim-client)
+  target_include_directories(${target} SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(${target} PUBLIC ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-  target_include_directories(bitprim_client_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(bitprim_client_test
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-
-  _group_sources(bitprim_client_test "${CMAKE_CURRENT_LIST_DIR}/test")
-
-  enable_testing()
-  set(_bitprim_tests proxy_tests)
-  foreach (_test_name ${_bitprim_tests})
+  foreach (_test_name ${ARGN})
     add_test(
-      NAME test.${_test_name}
-      COMMAND bitprim_client_test
+      NAME test.client.${_test_name}
+      COMMAND ${target}
         --run_test=${_test_name}
         --show_progress=no
         --detect_memory_leak=0
         --report_level=no
         --build_info=yes)
   endforeach()
+endfunction()
+
+if (WITH_TESTS)
+  enable_testing()
+endif()
+
+# local: test/bitprim_client_test
+#------------------------------------------------------------------------------
+if (WITH_TESTS)
+  add_executable(bitprim_client_test
+    test/main.cpp
+    test/proxy.cpp)
+  target_link_libraries(bitprim_client_test PUBLIC bitprim-client)
+  _group_sources(bitprim_client_test "${CMAKE_CURRENT_LIST_DIR}/test")
+
+  _add_tests(bitprim_client_test
+    proxy_tests)
 endif()
 
 # Examples
