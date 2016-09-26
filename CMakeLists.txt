@@ -128,6 +128,27 @@ _add_cxx_compile_flag(-fvisibility-inlines-hidden _has_visibility_inlines_hidden
 
 # Build
 #==============================================================================
+function(_group_sources target sources_dir)
+  file(GLOB_RECURSE _headers
+    ${sources_dir}/include/*.h ${sources_dir}/include/*.hpp)
+  target_sources(${target} PRIVATE ${_headers})
+
+  get_target_property(sources ${target} SOURCES)
+  foreach (source ${sources})
+    get_filename_component(group ${source} ABSOLUTE)
+    get_filename_component(group ${group} DIRECTORY)
+    file(RELATIVE_PATH group "${sources_dir}" "${group}")
+    if (group)
+      if (MSVC)
+        string(REPLACE "/" "\\" group "${group}")
+      endif()
+      source_group("${group}" FILES "${source}")
+    endif()
+  endforeach()
+
+  set_target_properties(${target} PROPERTIES FOLDER "client")
+endfunction()
+
 # src/bitprim-client.la => ${libdir}
 #------------------------------------------------------------------------------
 set(MODE STATIC)
@@ -148,22 +169,7 @@ target_compile_definitions(bitprim-client PUBLIC -DBCC_STATIC)
 
 target_link_libraries(bitprim-client bitprim-core bitprim-protocol)
 
-set_target_properties(bitprim-client PROPERTIES FOLDER "client")
-
-# Group sources
-file(GLOB_RECURSE headers
-  RELATIVE ${CMAKE_CURRENT_LIST_DIR}
-  include/*.h include/*.hpp)
-target_sources(bitprim-client PRIVATE "${headers}")
-
-get_target_property(sources bitprim-client SOURCES)
-foreach (source ${sources})
-  get_filename_component(group ${source} DIRECTORY)
-  if (MSVC)
-    string(REPLACE "/" "\\" group ${group})
-  endif()
-  source_group("${group}" FILES ${source})
-endforeach()
+_group_sources(bitprim-client "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
 #==============================================================================
@@ -182,7 +188,7 @@ if (WITH_TESTS)
   target_link_libraries(bitprim_client_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-  set_target_properties(bitprim_client_test PROPERTIES FOLDER "client")
+  _group_sources(bitprim_client_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
   enable_testing()
   set(_bitprim_tests proxy_tests)
@@ -212,7 +218,7 @@ if (WITH_EXAMPLES)
     examples/console/read_line.cpp
     examples/console/read_line.hpp)
   target_link_libraries(console PUBLIC bitprim-client)
-  set_target_properties(console PROPERTIES FOLDER "client")
+  _group_sources(console "${CMAKE_CURRENT_LIST_DIR}/examples/console")
 endif()
 
 # local: examples/get_height/get_height
@@ -221,7 +227,7 @@ if (WITH_EXAMPLES)
   add_executable(get_height
     examples/get_height/main.cpp)
   target_link_libraries(get_height PUBLIC bitprim-client)
-  set_target_properties(get_height PROPERTIES FOLDER "client")
+  _group_sources(get_height "${CMAKE_CURRENT_LIST_DIR}/examples/get_height")
 endif()
 
 # Install
