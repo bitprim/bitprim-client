@@ -1,11 +1,11 @@
-cmake_policy(VERSION 3.4)
+cmake_minimum_required(VERSION 3.4)
 
 # bitprim-client
 #==============================================================================
 project(bitprim-client
   VERSION 3.0.0
   LANGUAGES CXX C)
-cmake_minimum_required(VERSION 3.4)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++11 standard.
 #------------------------------------------------------------------------------
@@ -128,6 +128,27 @@ _add_cxx_compile_flag(-fvisibility-inlines-hidden _has_visibility_inlines_hidden
 
 # Build
 #==============================================================================
+function(_group_sources target sources_dir)
+  file(GLOB_RECURSE _headers
+    ${sources_dir}/include/*.h ${sources_dir}/include/*.hpp)
+  target_sources(${target} PRIVATE ${_headers})
+
+  get_target_property(sources ${target} SOURCES)
+  foreach (source ${sources})
+    get_filename_component(group ${source} ABSOLUTE)
+    get_filename_component(group ${group} DIRECTORY)
+    file(RELATIVE_PATH group "${sources_dir}" "${group}")
+    if (group)
+      if (MSVC)
+        string(REPLACE "/" "\\" group "${group}")
+      endif()
+      source_group("${group}" FILES "${source}")
+    endif()
+  endforeach()
+
+  set_target_properties(${target} PROPERTIES FOLDER "client")
+endfunction()
+
 # src/bitprim-client.la => ${libdir}
 #------------------------------------------------------------------------------
 set(MODE STATIC)
@@ -148,20 +169,32 @@ target_compile_definitions(bitprim-client PUBLIC -DBCC_STATIC)
 
 target_link_libraries(bitprim-client bitprim-core bitprim-protocol)
 
-# Group sources
-file(GLOB_RECURSE headers
-  RELATIVE ${CMAKE_CURRENT_LIST_DIR}
-  include/*.h include/*.hpp)
-target_sources(bitprim-client PRIVATE "${headers}")
+_group_sources(bitprim-client "${CMAKE_CURRENT_LIST_DIR}")
 
-get_target_property(sources bitprim-client SOURCES)
-foreach (source ${sources})
-  get_filename_component(group ${source} DIRECTORY)
-  if (MSVC)
-    string(REPLACE "/" "\\" group ${group})
+# Tests
+#==============================================================================
+function(_add_tests target)
+  if (ENABLE_SHARED)
+    target_compile_definitions(${target} PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
-  source_group("${group}" FILES ${source})
-endforeach()
+  target_include_directories(${target} SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(${target} PUBLIC ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+  foreach (_test_name ${ARGN})
+    add_test(
+      NAME test.client.${_test_name}
+      COMMAND ${target}
+        --run_test=${_test_name}
+        --show_progress=no
+        --detect_memory_leak=0
+        --report_level=no
+        --build_info=yes)
+  endforeach()
+endfunction()
+
+if (WITH_TESTS)
+  enable_testing()
+endif()
 
 # local: test/bitprim_client_test
 #------------------------------------------------------------------------------
@@ -169,29 +202,15 @@ if (WITH_TESTS)
   add_executable(bitprim_client_test
     test/main.cpp
     test/proxy.cpp)
-  if (ENABLE_SHARED)
-    target_compile_definitions(bitprim_client_test PRIVATE -DBOOST_TEST_DYN_LINK)
-  endif()
-  target_link_libraries(bitprim_client_test bitprim-client)
+  target_link_libraries(bitprim_client_test PUBLIC bitprim-client)
+  _group_sources(bitprim_client_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
-  target_include_directories(bitprim_client_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(bitprim_client_test
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-
-  enable_testing()
-  set(_bitprim_tests proxy_tests)
-  foreach (_test_name ${_bitprim_tests})
-    add_test(
-      NAME test.${_test_name}
-      COMMAND bitprim_client_test
-        --run_test=${_test_name}
-        --show_progress=no
-        --detect_memory_leak=0
-        --report_level=no
-        --build_info=yes)
-  endforeach()
+  _add_tests(bitprim_client_test
+    proxy_tests)
 endif()
 
+# Examples
+#==============================================================================
 # local: examples/console/console
 #------------------------------------------------------------------------------
 if (WITH_EXAMPLES)
@@ -204,6 +223,7 @@ if (WITH_EXAMPLES)
     examples/console/read_line.cpp
     examples/console/read_line.hpp)
   target_link_libraries(console PUBLIC bitprim-client)
+  _group_sources(console "${CMAKE_CURRENT_LIST_DIR}/examples/console")
 endif()
 
 # local: examples/get_height/get_height
@@ -212,6 +232,7 @@ if (WITH_EXAMPLES)
   add_executable(get_height
     examples/get_height/main.cpp)
   target_link_libraries(get_height PUBLIC bitprim-client)
+  _group_sources(get_height "${CMAKE_CURRENT_LIST_DIR}/examples/get_height")
 endif()
 
 # Install
