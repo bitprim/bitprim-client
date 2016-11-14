@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/libbitcoin/libbitcoin-client.svg?branch=master)](https://travis-ci.org/libbitcoin/libbitcoin-client)
-
-[![Coverage Status](https://coveralls.io/repos/libbitcoin/libbitcoin-client/badge.svg)](https://coveralls.io/r/libbitcoin/libbitcoin-client)
+[![Build Status](https://travis-ci.org/bitprim/bitprim-client.svg?branch=master)](https://travis-ci.org/bitprim/bitprim-client)
 
 # Bitprim Client
 
