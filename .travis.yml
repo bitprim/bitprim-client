@@ -301,7 +301,7 @@ install:
   - cd bitprim-protocol
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
   - make -j2
   - sudo make install
   - cd ..
