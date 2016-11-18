@@ -252,6 +252,69 @@ install:
       sudo ldconfig      
     fi
   
+  ############################################################################
+  # secp256k1
+  ############################################################################
+  - git clone https://github.com/bitprim/secp256k1.git
+  - cd secp256k1
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j2 --silent
+  - sudo make install --silent
+  - cd ..
+  - cd ..
+
+  ############################################################################
+  # set libraries
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo ldconfig      
+    fi
+
+  ############################################################################
+  # bitprim-core
+  ############################################################################
+  - git clone https://github.com/bitprim/bitprim-core.git
+  - cd bitprim-core
+  - mkdir build
+  - cd build
+  - cmake .. -DENABLE_TESTS=OFF -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DENABLE_MODULE_RECOVERY=ON -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
+  - make -j2 --silent
+  - sudo make install --silent
+  - cd ..
+  - cd ..
+
+  ############################################################################
+  # set libraries
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo ldconfig      
+    fi
+    
+  ############################################################################
+  # bitprim-protocol
+  ############################################################################
+  - git clone https://github.com/bitprim/bitprim-protocol.git
+  - cd bitprim-protocol
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make -j2
+  - sudo make install
+  - cd ..
+  - cd ..
+
+  ############################################################################
+  # set libraries
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo ldconfig      
+    fi
+  
   # ############################################################################
   # # Install and use a more recent Ruby and install the gems for the benchmarks
   # ############################################################################
@@ -294,11 +357,14 @@ before_script:
   # - (mkdir build &&
   # - cd build
   # - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..
-  - (mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..)
+  - mkdir build 
+  - cd build 
+  - cmake -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..)
 
 script:
 
-  - (cd build && make tests && make -j2 && make install)
+  - make -j2
+  - sudo make install
   # - make tests -k
 
   # ############################################################################
