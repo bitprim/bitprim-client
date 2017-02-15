@@ -1,21 +1,20 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
  *
- * This file is part of libbitcoin-client.
+ * This file is part of libbitcoin.
  *
- * libbitcoin-client is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License with
- * additional permissions to the one published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version. For more information see LICENSE.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef LIBBITCOIN_CLIENT_PROXY_HPP
 #define LIBBITCOIN_CLIENT_PROXY_HPP
@@ -43,24 +42,23 @@ public:
     // Fetch handler types.
     //-------------------------------------------------------------------------
 
-    typedef std::function<void()> empty_handler;
     typedef std::function<void(size_t)> height_handler;
+    typedef std::function<void(const code&)> result_handler;
     typedef std::function<void(size_t, size_t)> transaction_index_handler;
     typedef std::function<void(const chain::header&)> block_header_handler;
     typedef std::function<void(const chain::history::list&)> history_handler;
     typedef std::function<void(const chain::stealth::list&)> stealth_handler;
     typedef std::function<void(const chain::transaction&)> transaction_handler;
-    typedef std::function<void(const chain::point::indexes&)> validate_handler;
     typedef std::function<void(const chain::points_info&)> points_info_handler;
 
     // Fetchers.
     //-------------------------------------------------------------------------
 
-    void protocol_broadcast_transaction(error_handler on_error,
-        empty_handler on_reply, const chain::transaction& tx);
+    void transaction_pool_broadcast(error_handler on_error,
+        result_handler on_reply, const chain::transaction& tx);
 
     void transaction_pool_validate(error_handler on_error,
-        validate_handler on_reply, const chain::transaction& tx);
+        result_handler on_reply, const chain::transaction& tx);
 
     void transaction_pool_fetch_transaction(error_handler on_error,
         transaction_handler on_reply, const hash_digest& tx_hash);
@@ -88,15 +86,15 @@ public:
         history_handler on_reply, const wallet::payment_address& address,
         uint32_t from_height = 0);
 
-    /// sx and bs 2.0 only (obsolete in bs 3.0).
-    void address_fetch_history(error_handler on_error,
-        history_handler on_reply, const wallet::payment_address& address,
-        uint32_t from_height=0);
+    /////// sx and bs 2.0 only (obsolete in bs 3.0).
+    ////void address_fetch_history(error_handler on_error,
+    ////    history_handler on_reply, const wallet::payment_address& address,
+    ////    uint32_t from_height=0);
 
-    /// bs 2.0 and later.
-    void address_fetch_history2(error_handler on_error,
-        history_handler on_reply, const wallet::payment_address& address,
-        uint32_t from_height=0);
+    /////// bs 2.0 and later.
+    ////void address_fetch_history2(error_handler on_error,
+    ////    history_handler on_reply, const wallet::payment_address& address,
+    ////    uint32_t from_height=0);
 
     void address_fetch_unspent_outputs(error_handler on_error,
         points_info_handler on_reply, const wallet::payment_address& address,
@@ -106,17 +104,17 @@ public:
     // Subscribers.
     //-------------------------------------------------------------------------
 
-    void address_subscribe(error_handler on_error, empty_handler on_reply,
+    void address_subscribe(error_handler on_error, result_handler on_reply,
         const wallet::payment_address& address);
 
-    void address_subscribe(error_handler on_error, empty_handler on_reply,
-        chain::subscribe_type type, const binary& prefix);
+    void address_subscribe(error_handler on_error, result_handler on_reply,
+        const binary& prefix);
 
 private:
 
     // Response handlers.
     //-------------------------------------------------------------------------
-    static bool decode_empty(reader& payload, empty_handler& handler);
+    static bool decode_empty(reader& payload, result_handler& handler);
     static bool decode_transaction(reader& payload,
         transaction_handler& handler);
     static bool decode_height(reader& payload, height_handler& handler);
@@ -124,7 +122,6 @@ private:
         block_header_handler& handler);
     static bool decode_transaction_index(reader& payload,
         transaction_index_handler& handler);
-    static bool decode_validate(reader& payload, validate_handler& handler);
     static bool decode_stealth(reader& payload, stealth_handler& handler);
     static bool decode_history(reader& payload, history_handler& handler);
     static bool decode_expanded_history(reader& payload,

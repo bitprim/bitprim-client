@@ -1,21 +1,20 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
  *
- * This file is part of libbitcoin-client.
+ * This file is part of libbitcoin.
  *
- * libbitcoin-client is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License with
- * additional permissions to the one published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version. For more information see LICENSE.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <cstdint>
 #include <string>
@@ -195,30 +194,30 @@ BOOST_AUTO_TEST_CASE(proxy__fetch_unconfirmed_transaction__test)
     BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), raw_satoshi);
 }
 
-BOOST_AUTO_TEST_CASE(proxy__address_fetch_history__test)
-{
-    PROXY_TEST_SETUP;
-
-    const auto on_reply = [](const chain::history::list&) {};
-    proxy.address_fetch_history(on_error, on_reply, payment_address(address_satoshi), test_height);
-
-    HANDLE_ROUTING_FRAMES(capture.out);
-    BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.fetch_history");
-    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "0035a131e99f240a2314bb0ddb3d81d05663eb5bf878563412");
-}
+////BOOST_AUTO_TEST_CASE(proxy__address_fetch_history__test)
+////{
+////    PROXY_TEST_SETUP;
+////
+////    const auto on_reply = [](const chain::history::list&) {};
+////    proxy.address_fetch_history(on_error, on_reply, payment_address(address_satoshi), test_height);
+////
+////    HANDLE_ROUTING_FRAMES(capture.out);
+////    BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
+////    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.fetch_history");
+////    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "0035a131e99f240a2314bb0ddb3d81d05663eb5bf878563412");
+////}
 
 BOOST_AUTO_TEST_CASE(proxy__subscribe__test)
 {
     PROXY_TEST_SETUP;
 
-    const auto on_reply = []() {};
+    const auto on_reply = [](const code&) {};
     proxy.address_subscribe(on_error, on_reply, payment_address(address_satoshi));
 
     HANDLE_ROUTING_FRAMES(capture.out);
     BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.subscribe");
-    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "00a0f85beb6356d0813ddb0dbb14230a249fe931a135");
+    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.subscribe2");
+    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "a0f85beb6356d0813ddb0dbb14230a249fe931a135");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
