@@ -53,7 +53,8 @@ public:
 // Shoves data into a std::string object.
 static std::string to_string(data_slice data)
 {
-    return std::string(data.begin(), data.end());
+    // zmq strings are not null terminated by convention.
+    return std::string(data.begin(), data.end()) + "\0";
 }
 
 static void remove_optional_delimiter(data_stack& stack)
@@ -88,17 +89,17 @@ static const char address_satoshi[] = "1PeChFbhxDD9NLbU21DfD55aQBC4ZTR3tE";
 
 BOOST_AUTO_TEST_SUITE(proxy_tests)
 
-BOOST_AUTO_TEST_CASE(proxy__fetch_history2__test)
+BOOST_AUTO_TEST_CASE(proxy__fetch_history3__test)
 {
     PROXY_TEST_SETUP;
 
     const auto on_reply = [](const chain::history::list&) {};
-    proxy.blockchain_fetch_history2(on_error, on_reply, payment_address(address_satoshi), test_height);
+    proxy.blockchain_fetch_history3(on_error, on_reply, payment_address(address_satoshi), test_height);
 
     HANDLE_ROUTING_FRAMES(capture.out);
     BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "blockchain.fetch_history2");
-    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "00f85beb6356d0813ddb0dbb14230a249fe931a13578563412");
+    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "blockchain.fetch_history3");
+    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "f85beb6356d0813ddb0dbb14230a249fe931a13578563412");
 }
 
 BOOST_AUTO_TEST_CASE(proxy__fetch_transaction__test)
@@ -166,22 +167,22 @@ BOOST_AUTO_TEST_CASE(proxy__fetch_transaction__index_test)
     BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), raw_satoshi);
 }
 
-BOOST_AUTO_TEST_CASE(proxy__fetch_stealth__test)
+BOOST_AUTO_TEST_CASE(proxy__fetch_stealth2__test)
 {
     PROXY_TEST_SETUP;
 
     const auto on_reply = [](const chain::stealth::list&) {};
     const std::vector<uint8_t> raw_prefix{ 0xff, 0xff, 0x00, 0x00 };
     const binary prefix(16, raw_prefix);
-    proxy.blockchain_fetch_stealth(on_error, on_reply, prefix, test_height);
+    proxy.blockchain_fetch_stealth2(on_error, on_reply, prefix, test_height);
 
     HANDLE_ROUTING_FRAMES(capture.out);
     BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "blockchain.fetch_stealth");
+    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "blockchain.fetch_stealth2");
     BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "10ffff78563412");
 }
 
-BOOST_AUTO_TEST_CASE(proxy__fetch_unconfirmed_transaction__test)
+BOOST_AUTO_TEST_CASE(proxy__pool_fetch_transaction__test)
 {
     PROXY_TEST_SETUP;
 
@@ -194,30 +195,17 @@ BOOST_AUTO_TEST_CASE(proxy__fetch_unconfirmed_transaction__test)
     BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), raw_satoshi);
 }
 
-////BOOST_AUTO_TEST_CASE(proxy__address_fetch_history2__test)
-////{
-////    PROXY_TEST_SETUP;
-////
-////    const auto on_reply = [](const chain::history::list&) {};
-////    proxy.address_fetch_history2(on_error, on_reply, payment_address(address_satoshi), test_height);
-////
-////    HANDLE_ROUTING_FRAMES(capture.out);
-////    BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-////    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.fetch_history2");
-////    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "0035a131e99f240a2314bb0ddb3d81d05663eb5bf878563412");
-////}
-
 BOOST_AUTO_TEST_CASE(proxy__subscribe__test)
 {
     PROXY_TEST_SETUP;
 
     const auto on_reply = [](const code&) {};
-    proxy.address_subscribe(on_error, on_reply, payment_address(address_satoshi));
+    proxy.subscribe_address(on_error, on_reply, payment_address(address_satoshi));
 
     HANDLE_ROUTING_FRAMES(capture.out);
     BOOST_REQUIRE_EQUAL(capture.out.size(), 3u);
-    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "address.subscribe2");
-    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "a0f85beb6356d0813ddb0dbb14230a249fe931a135");
+    BOOST_REQUIRE_EQUAL(to_string(capture.out[0]), "subscribe.address");
+    BOOST_REQUIRE_EQUAL(encode_base16(capture.out[2]), "f85beb6356d0813ddb0dbb14230a249fe931a135");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
